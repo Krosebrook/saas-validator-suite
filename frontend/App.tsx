@@ -1,9 +1,9 @@
 import React from 'react';
-import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, SignInButton } from '@clerk/clerk-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
-import { clerkPublishableKey } from './config';
+import { ClerkWrapper } from './components/ClerkWrapper';
 import Dashboard from './pages/Dashboard';
 import IdeasPage from './pages/Ideas';
 import IdeaDetail from './pages/IdeaDetail';
@@ -16,7 +16,7 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <ClerkProvider publishableKey={clerkPublishableKey}>
+    <ClerkWrapper>
       <QueryClientProvider client={queryClient}>
         <div className="min-h-screen bg-background">
           <SignedOut>
@@ -60,7 +60,7 @@ function App() {
           <Toaster />
         </div>
       </QueryClientProvider>
-    </ClerkProvider>
+    </ClerkWrapper>
   );
 }
 

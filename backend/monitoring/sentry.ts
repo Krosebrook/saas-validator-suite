@@ -25,6 +25,9 @@ export function initSentry() {
   });
 }
 
+// Auto-initialize Sentry when this module is loaded
+initSentry();
+
 // API to capture exceptions manually
 export const captureException = api(
   { method: "POST", path: "/monitoring/error", expose: true },

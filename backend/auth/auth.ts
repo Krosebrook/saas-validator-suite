@@ -1,9 +1,10 @@
 import { createClerkClient, verifyToken } from "@clerk/backend";
-import { Header, Cookie, APIError, Gateway } from "encore.dev/api";
+import { Header, Cookie, APIError, Gateway, api } from "encore.dev/api";
 import { authHandler } from "encore.dev/auth";
 import { secret } from "encore.dev/config";
 
 const clerkSecretKey = secret("ClerkSecretKey");
+const clerkPublishableKey = secret("ClerkPublishableKey");
 const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
 
 interface AuthParams {
@@ -47,3 +48,13 @@ export const auth = authHandler<AuthParams, AuthData>(
 );
 
 export const gw = new Gateway({ authHandler: auth });
+
+// Secure endpoint to get Clerk publishable key
+export const getClerkConfig = api(
+  { method: "GET", path: "/auth/clerk-config", expose: true },
+  async (): Promise<{ publishableKey: string }> => {
+    return {
+      publishableKey: clerkPublishableKey(),
+    };
+  }
+);

@@ -34,6 +34,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  */
 export class Client {
     public readonly ai: ai.ServiceClient
+    public readonly auth: auth.ServiceClient
     public readonly compliance: compliance.ServiceClient
     public readonly db: db.ServiceClient
     public readonly ideas: ideas.ServiceClient
@@ -57,6 +58,7 @@ export class Client {
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
         this.ai = new ai.ServiceClient(base)
+        this.auth = new auth.ServiceClient(base)
         this.compliance = new compliance.ServiceClient(base)
         this.db = new db.ServiceClient(base)
         this.ideas = new ideas.ServiceClient(base)
@@ -144,8 +146,30 @@ export namespace ai {
     }
 }
 
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
+import { getClerkConfig as api_auth_auth_getClerkConfig } from "~backend/auth/auth";
 
 export namespace auth {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getClerkConfig = this.getClerkConfig.bind(this)
+        }
+
+        /**
+         * Secure endpoint to get Clerk publishable key
+         */
+        public async getClerkConfig(): Promise<ResponseType<typeof api_auth_auth_getClerkConfig>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/auth/clerk-config`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_auth_getClerkConfig>
+        }
+    }
 }
 
 /**
