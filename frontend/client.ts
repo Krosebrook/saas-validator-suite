@@ -35,9 +35,12 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
 export class Client {
     public readonly ai: ai.ServiceClient
     public readonly compliance: compliance.ServiceClient
+    public readonly db: db.ServiceClient
     public readonly ideas: ideas.ServiceClient
     public readonly monitoring: monitoring.ServiceClient
+    public readonly notifications: notifications.ServiceClient
     public readonly scoring: scoring.ServiceClient
+    public readonly security: security.ServiceClient
     public readonly users: users.ServiceClient
     private readonly options: ClientOptions
     private readonly target: string
@@ -55,9 +58,12 @@ export class Client {
         const base = new BaseClient(this.target, this.options)
         this.ai = new ai.ServiceClient(base)
         this.compliance = new compliance.ServiceClient(base)
+        this.db = new db.ServiceClient(base)
         this.ideas = new ideas.ServiceClient(base)
         this.monitoring = new monitoring.ServiceClient(base)
+        this.notifications = new notifications.ServiceClient(base)
         this.scoring = new scoring.ServiceClient(base)
+        this.security = new security.ServiceClient(base)
         this.users = new users.ServiceClient(base)
     }
 
@@ -105,6 +111,7 @@ export interface ClientOptions {
  * Import the endpoint handlers to derive the types for the client.
  */
 import { analyze as api_ai_analyze_analyze } from "~backend/ai/analyze";
+import { analyzeStartup as api_ai_startup_analysis_analyzeStartup } from "~backend/ai/startup-analysis";
 
 export namespace ai {
 
@@ -114,6 +121,7 @@ export namespace ai {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.analyze = this.analyze.bind(this)
+            this.analyzeStartup = this.analyzeStartup.bind(this)
         }
 
         /**
@@ -123,6 +131,15 @@ export namespace ai {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/ai/analyze`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ai_analyze_analyze>
+        }
+
+        /**
+         * Analyzes a startup idea using the 8-dimension VC framework
+         */
+        public async analyzeStartup(params: RequestType<typeof api_ai_startup_analysis_analyzeStartup>): Promise<ResponseType<typeof api_ai_startup_analysis_analyzeStartup>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ai/analyze-startup`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ai_startup_analysis_analyzeStartup>
         }
     }
 }
@@ -153,6 +170,56 @@ export namespace compliance {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/compliance/scan`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_compliance_scan_scan>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
+import {
+    migrate as api_db_migrate_migrate,
+    status as api_db_migrate_status,
+    validate as api_db_migrate_validate
+} from "~backend/db/migrate";
+
+export namespace db {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.migrate = this.migrate.bind(this)
+            this.status = this.status.bind(this)
+            this.validate = this.validate.bind(this)
+        }
+
+        /**
+         * Run pending migrations
+         */
+        public async migrate(): Promise<ResponseType<typeof api_db_migrate_migrate>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/db/migrations/run`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_db_migrate_migrate>
+        }
+
+        /**
+         * Get migration status and list all migrations
+         */
+        public async status(): Promise<ResponseType<typeof api_db_migrate_status>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/db/migrations/status`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_db_migrate_status>
+        }
+
+        /**
+         * Validate migrations integrity
+         */
+        public async validate(): Promise<ResponseType<typeof api_db_migrate_validate>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/db/migrations/validate`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_db_migrate_validate>
         }
     }
 }
@@ -265,6 +332,54 @@ export namespace monitoring {
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
+import {
+    connect as api_notifications_websocket_connect,
+    getStats as api_notifications_websocket_getStats,
+    sendTest as api_notifications_websocket_sendTest
+} from "~backend/notifications/websocket";
+
+export namespace notifications {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.connect = this.connect.bind(this)
+            this.getStats = this.getStats.bind(this)
+            this.sendTest = this.sendTest.bind(this)
+        }
+
+        /**
+         * Real-time notification stream
+         */
+        public async connect(): Promise<StreamInOut<StreamRequest<typeof api_notifications_websocket_connect>, StreamResponse<typeof api_notifications_websocket_connect>>> {
+            return await this.baseClient.createStreamInOut(`/notifications/connect`)
+        }
+
+        /**
+         * Get notification statistics
+         */
+        public async getStats(): Promise<ResponseType<typeof api_notifications_websocket_getStats>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/notifications/stats`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_notifications_websocket_getStats>
+        }
+
+        /**
+         * Send test notification (for development/testing)
+         */
+        public async sendTest(params: RequestType<typeof api_notifications_websocket_sendTest>): Promise<ResponseType<typeof api_notifications_websocket_sendTest>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/notifications/test`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_notifications_websocket_sendTest>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
 import { submitFeedback as api_scoring_feedback_submitFeedback } from "~backend/scoring/feedback";
 
 export namespace scoring {
@@ -284,6 +399,64 @@ export namespace scoring {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/scoring/feedback`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_scoring_feedback_submitFeedback>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
+import {
+    analyzeSecurityRisk as api_security_security_analyzeSecurityRisk,
+    getRateLimitStats as api_security_security_getRateLimitStats,
+    resetUserRateLimit as api_security_security_resetUserRateLimit
+} from "~backend/security/security";
+
+export namespace security {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.analyzeSecurityRisk = this.analyzeSecurityRisk.bind(this)
+            this.getRateLimitStats = this.getRateLimitStats.bind(this)
+            this.resetUserRateLimit = this.resetUserRateLimit.bind(this)
+        }
+
+        /**
+         * Security analysis endpoint
+         */
+        public async analyzeSecurityRisk(params: RequestType<typeof api_security_security_analyzeSecurityRisk>): Promise<ResponseType<typeof api_security_security_analyzeSecurityRisk>> {
+            // Convert our params into the objects we need for the request
+            const headers = makeRecord<string, string>({
+                referer:           params.referer,
+                "user-agent":      params.userAgent,
+                "x-forwarded-for": params.xForwardedFor,
+                "x-real-ip":       params.xRealIp,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/security/analyze`, {headers, method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_security_security_analyzeSecurityRisk>
+        }
+
+        /**
+         * Get rate limit statistics
+         */
+        public async getRateLimitStats(): Promise<ResponseType<typeof api_security_security_getRateLimitStats>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/security/rate-limits/stats`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_security_security_getRateLimitStats>
+        }
+
+        /**
+         * Reset rate limits for a user (admin only)
+         */
+        public async resetUserRateLimit(params: RequestType<typeof api_security_security_resetUserRateLimit>): Promise<ResponseType<typeof api_security_security_resetUserRateLimit>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/security/rate-limits/reset`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_security_security_resetUserRateLimit>
         }
     }
 }

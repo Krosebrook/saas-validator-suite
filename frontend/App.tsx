@@ -10,6 +10,7 @@ import IdeaDetail from './pages/IdeaDetail';
 import AnalyticsPage from './pages/Analytics';
 import SettingsPage from './pages/Settings';
 import Navbar from './components/Navbar';
+import { NotificationProvider } from './components/NotificationProvider';
 
 const queryClient = new QueryClient();
 
@@ -35,23 +36,25 @@ function App() {
           </SignedOut>
           
           <SignedIn>
-            <Router>
-              <div className="flex h-screen">
-                <Navbar />
-                <main className="flex-1 overflow-auto">
-                  <div className="p-6">
-                    <Routes>
-                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/ideas" element={<IdeasPage />} />
-                      <Route path="/ideas/:id" element={<IdeaDetail />} />
-                      <Route path="/analytics" element={<AnalyticsPage />} />
-                      <Route path="/settings" element={<SettingsPage />} />
-                    </Routes>
-                  </div>
-                </main>
-              </div>
-            </Router>
+            <NotificationProvider>
+              <Router>
+                <div className="flex h-screen">
+                  <Navbar />
+                  <main className="flex-1 overflow-auto">
+                    <div className="p-6">
+                      <Routes>
+                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/ideas" element={<IdeasPage />} />
+                        <Route path="/ideas/:id" element={<IdeaDetail />} />
+                        <Route path="/analytics" element={<AnalyticsPage />} />
+                        <Route path="/settings" element={<SettingsPage />} />
+                      </Routes>
+                    </div>
+                  </main>
+                </div>
+              </Router>
+            </NotificationProvider>
           </SignedIn>
           
           <Toaster />

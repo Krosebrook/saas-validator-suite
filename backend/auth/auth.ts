@@ -18,7 +18,7 @@ export interface AuthData {
 }
 
 const AUTHORIZED_PARTIES = [
-  "https://*.lp.dev",
+  "https://saas-validator-suite-d370vmc82vjsm36vu8rg.lp.dev",
 ];
 
 export const auth = authHandler<AuthParams, AuthData>(
