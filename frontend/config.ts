@@ -8,7 +8,7 @@ export let clerkPublishableKey: string | null = null;
 // Function to fetch Clerk configuration from backend
 export async function fetchClerkConfig(): Promise<string> {
   try {
-    const response = await fetch('/api/auth/clerk-config');
+    const response = await fetch('/auth/clerk-config');
     if (!response.ok) {
       throw new Error(`Failed to fetch Clerk config: ${response.status}`);
     }
