@@ -1,6 +1,5 @@
 // The Clerk publishable key for authentication
-// TODO: Set this to your Clerk publishable key from the Clerk dashboard
-export const clerkPublishableKey = "";
+export const clerkPublishableKey = "pk_test_dXAtbW9ua2V5LTU3LmNsZXJrLmFjY291bnRzLmRldiQ";
 
 // API base URL
 export const apiBaseUrl = "";
