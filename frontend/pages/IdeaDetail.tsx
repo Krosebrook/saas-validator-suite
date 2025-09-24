@@ -5,16 +5,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { ArrowLeft, Brain, DollarSign, Shield, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useBackend } from '../hooks/useBackend';
 import ScoreCard from '../components/ScoreCard';
+import { AnalysisTypeSelector } from '../components/AnalysisTypeSelector';
+import { StartupAnalysisDisplay } from '../components/StartupAnalysisDisplay';
 
 export default function IdeaDetail() {
   const { id } = useParams<{ id: string }>();
-  const [trackType, setTrackType] = useState<'saas' | 'content' | 'ecom'>('saas');
   const [feedbackNotes, setFeedbackNotes] = useState('');
+  const [basicAnalysis, setBasicAnalysis] = useState<any>(null);
+  const [startupAnalysis, setStartupAnalysis] = useState<any>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('selector');
   
   const backend = useBackend();
   const { toast } = useToast();
@@ -26,25 +31,23 @@ export default function IdeaDetail() {
     enabled: !!id,
   });
 
-  const analyzeMutation = useMutation({
-    mutationFn: (trackType: 'saas' | 'content' | 'ecom') => 
-      backend.ai.analyze({ idea_id: parseInt(id!), track_type: trackType }),
-    onSuccess: () => {
-      toast({
-        title: "Analysis complete",
-        description: "Your idea has been analyzed successfully.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['ideas', id] });
-    },
-    onError: (error) => {
-      console.error('Analysis error:', error);
-      toast({
-        title: "Analysis failed",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
-    },
-  });
+  const handleAnalysisStart = () => {
+    setIsAnalyzing(true);
+  };
+
+  const handleAnalysisComplete = (analysis: any, type: 'basic' | 'startup') => {
+    setIsAnalyzing(false);
+    
+    if (type === 'basic') {
+      setBasicAnalysis(analysis);
+      setActiveTab('basic');
+    } else {
+      setStartupAnalysis(analysis);
+      setActiveTab('startup');
+    }
+    
+    queryClient.invalidateQueries({ queryKey: ['ideas', id] });
+  };
 
   const complianceMutation = useMutation({
     mutationFn: () => backend.compliance.scan({ idea_id: parseInt(id!) }),
@@ -143,30 +146,10 @@ export default function IdeaDetail() {
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <Select value={trackType} onValueChange={(value: any) => setTrackType(value)}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="saas">SaaS</SelectItem>
-                <SelectItem value="content">Content</SelectItem>
-                <SelectItem value="ecom">E-commerce</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button 
-              onClick={() => analyzeMutation.mutate(trackType)}
-              disabled={analyzeMutation.isPending}
-            >
-              <Brain className="h-4 w-4 mr-2" />
-              {analyzeMutation.isPending ? 'Analyzing...' : 'Analyze'}
-            </Button>
-          </div>
           <Button 
             variant="outline"
             onClick={() => complianceMutation.mutate()}
             disabled={complianceMutation.isPending}
-            className="w-full"
           >
             <Shield className="h-4 w-4 mr-2" />
             {complianceMutation.isPending ? 'Scanning...' : 'Compliance Scan'}
@@ -174,101 +157,134 @@ export default function IdeaDetail() {
         </div>
       </div>
 
-      {/* Scores */}
-      {idea.score && (
-        <div>
-          <h2 className="text-xl font-semibold text-foreground mb-4">Validation Scores</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <ScoreCard
-              title="Overall Score"
-              score={idea.score.overall_score || 0}
-              className="md:col-span-2"
-            />
-            <ScoreCard
-              title="Market Potential"
-              score={idea.score.market_potential || 0}
-            />
-            <ScoreCard
-              title="Competition"
-              score={100 - (idea.score.competition_level || 0)}
-            />
-            <ScoreCard
-              title="Tech Feasibility"
-              score={idea.score.technical_feasibility || 0}
-            />
-            <ScoreCard
-              title="Monetization"
-              score={idea.score.monetization_potential || 0}
-            />
-          </div>
-        </div>
-      )}
+      {/* Analysis Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="selector">Choose Analysis</TabsTrigger>
+          <TabsTrigger value="basic" disabled={!basicAnalysis}>Basic Results</TabsTrigger>
+          <TabsTrigger value="startup" disabled={!startupAnalysis}>Startup Results</TabsTrigger>
+        </TabsList>
 
-      {/* Cost Estimates */}
-      {idea.cost_estimate && (
-        <div>
-          <h2 className="text-xl font-semibold text-foreground mb-4">Cost Analysis</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Development Cost
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-foreground">
-                  ${idea.cost_estimate.development_cost?.toLocaleString()}
+        <TabsContent value="selector" className="mt-6">
+          <AnalysisTypeSelector
+            ideaId={parseInt(id!)}
+            ideaTitle={idea.title}
+            onAnalysisStart={handleAnalysisStart}
+            onAnalysisComplete={handleAnalysisComplete}
+          />
+        </TabsContent>
+
+        <TabsContent value="basic" className="mt-6">
+          {basicAnalysis && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-foreground">Basic Analysis Results</h2>
+                <Badge variant="outline">Traditional Scoring</Badge>
+              </div>
+              
+              {/* Basic Analysis Scores */}
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <ScoreCard
+                  title="Overall Score"
+                  score={basicAnalysis.overall_score || 0}
+                  className="md:col-span-2"
+                />
+                <ScoreCard
+                  title="Market Potential"
+                  score={basicAnalysis.market_potential || 0}
+                />
+                <ScoreCard
+                  title="Competition"
+                  score={100 - (basicAnalysis.competition_level || 0)}
+                />
+                <ScoreCard
+                  title="Tech Feasibility"
+                  score={basicAnalysis.technical_feasibility || 0}
+                />
+                <ScoreCard
+                  title="Monetization"
+                  score={basicAnalysis.monetization_potential || 0}
+                />
+              </div>
+
+              {/* Cost Estimates */}
+              {basicAnalysis.cost_estimate && (
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Cost Analysis</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">
+                          Development Cost
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-foreground">
+                          ${basicAnalysis.cost_estimate.development_cost?.toLocaleString()}
+                        </div>
+                        <p className="text-xs text-muted-foreground">One-time investment</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">
+                          Monthly Costs
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-foreground">
+                          ${(basicAnalysis.cost_estimate.infrastructure_cost || 0) + (basicAnalysis.cost_estimate.operational_cost || 0)}
+                        </div>
+                        <p className="text-xs text-muted-foreground">Infrastructure + Operations</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">
+                          Break-even
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-foreground">
+                          {basicAnalysis.cost_estimate.break_even_months} months
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          ROI: {basicAnalysis.cost_estimate.roi_estimate}%
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">One-time investment</p>
-              </CardContent>
-            </Card>
+              )}
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Monthly Costs
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-foreground">
-                  ${(idea.cost_estimate.infrastructure_cost || 0) + (idea.cost_estimate.operational_cost || 0)}
-                </div>
-                <p className="text-xs text-muted-foreground">Infrastructure + Operations</p>
-              </CardContent>
-            </Card>
+              {/* AI Analysis */}
+              {basicAnalysis.ai_analysis && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>AI Analysis</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground whitespace-pre-wrap">
+                      {basicAnalysis.ai_analysis}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+        </TabsContent>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Break-even
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-foreground">
-                  {idea.cost_estimate.break_even_months} months
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  ROI: {idea.cost_estimate.roi_estimate}%
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      )}
-
-      {/* AI Analysis */}
-      {idea.score?.ai_analysis && (
-        <Card>
-          <CardHeader>
-            <CardTitle>AI Analysis</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground whitespace-pre-wrap">
-              {idea.score.ai_analysis}
-            </p>
-          </CardContent>
-        </Card>
-      )}
+        <TabsContent value="startup" className="mt-6">
+          {startupAnalysis && (
+            <StartupAnalysisDisplay
+              analysis={startupAnalysis}
+              ideaTitle={idea.title}
+            />
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Feedback */}
       <Card>

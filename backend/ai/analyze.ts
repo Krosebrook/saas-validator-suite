@@ -56,7 +56,7 @@ export const analyze = api<AnalyzeIdeaRequest, AnalysisResult>(
       validateRequired(req.idea_id, "idea_id");
       validateNumber(req.idea_id, "idea_id", { integer: true, min: 1 });
       validateRequired(req.track_type, "track_type");
-      validateEnum(req.track_type, ["saas", "content", "ecom"], "track_type");
+      validateEnum(req.track_type, ["saas", "content", "ecom", "startup"], "track_type");
       
       // Get user and idea
       const user = await db.queryRow`
