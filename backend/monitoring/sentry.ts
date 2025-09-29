@@ -10,7 +10,7 @@ export function initSentry() {
   Sentry.init({
     dsn: sentryDsn(),
     // Tracing
-    tracesSampleRate: 1.0, // Capture 100% of the transactions in development
+    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0, // 10% in production, 100% in development
     // Setting this option to true will send default PII data to Sentry.
     sendDefaultPii: true,
     environment: process.env.NODE_ENV || "development",
