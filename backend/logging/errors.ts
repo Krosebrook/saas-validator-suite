@@ -1,5 +1,6 @@
 import { APIError } from "encore.dev/api";
 import { logger } from "./logger";
+import * as Sentry from "@sentry/node";
 
 export enum ErrorCode {
   VALIDATION_ERROR = "VALIDATION_ERROR",
@@ -88,12 +89,33 @@ export function handleError(error: unknown, context?: {
   endpoint?: string;
   userId?: string;
 }): never {
+  const errorObj = error instanceof Error ? error : new Error(String(error));
+  
   logger.error("Error occurred", {
-    error: error instanceof Error ? error : new Error(String(error)),
+    error: errorObj,
     ...context,
   });
 
+  // Set Sentry context if provided
+  if (context) {
+    Sentry.setContext("error_context", context);
+    if (context.userId) {
+      Sentry.setUser({ id: context.userId });
+    }
+  }
+
+  // Capture error in Sentry based on type
   if (error instanceof AppError) {
+    // Only capture server errors (5xx) in Sentry, not client errors (4xx)
+    if (error.statusCode >= 500) {
+      Sentry.captureException(errorObj, {
+        tags: {
+          errorCode: error.code,
+          statusCode: error.statusCode.toString(),
+        },
+        extra: error.data,
+      });
+    }
     throw APIError.internal(error.message);
   }
 
@@ -122,6 +144,14 @@ export function handleError(error: unknown, context?: {
     }
   }
 
+  // Capture unexpected errors in Sentry
+  Sentry.captureException(errorObj, {
+    tags: {
+      errorType: 'unexpected',
+    },
+    extra: context,
+  });
+
   // Default to internal server error
   throw APIError.internal("An unexpected error occurred");
 }
@@ -137,4 +167,22 @@ export function wrapAsync<T extends any[], R>(
       handleError(error, context);
     }
   };
+}
+
+// Helper function to capture messages in Sentry with proper context
+export function captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info', context?: Record<string, any>) {
+  if (context) {
+    Sentry.setContext("message_context", context);
+  }
+  Sentry.captureMessage(message, level);
+}
+
+// Helper function to add breadcrumbs for tracking user actions
+export function addBreadcrumb(message: string, category: string, data?: Record<string, any>) {
+  Sentry.addBreadcrumb({
+    message,
+    category,
+    level: 'info',
+    data,
+  });
 }
