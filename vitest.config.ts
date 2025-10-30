@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['backend/tests/**/*.test.ts', 'frontend/tests/**/*.test.tsx'],
+    include: ['**/tests/**/*.test.ts', '**/tests/**/*.test.tsx'],
     exclude: ['node_modules', 'dist', 'build'],
     restoreMocks: true,
     reporters: ['default'],
