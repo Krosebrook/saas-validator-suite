@@ -4,7 +4,7 @@ import path from 'path';
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: 'happy-dom',
     include: ['tests/**/*.test.tsx'],
     exclude: ['node_modules', 'dist', 'build'],
     restoreMocks: true,
