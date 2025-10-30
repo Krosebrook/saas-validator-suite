@@ -73,7 +73,7 @@ Backend will be available at `http://localhost:4000`
 ```bash
 cd frontend
 bun install
-bun run dev
+bunx vite dev
 ```
 Frontend will be available at `http://localhost:5173` (default Vite port)
 
