@@ -75,7 +75,11 @@ export function validateUrl(value: any, field: string = 'url'): void {
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
       throw new ValidationError(`${field} must be a valid URL`, field);
     }
-  } catch {
+  } catch (error) {
+    // Re-throw ValidationError if it's already one
+    if (error instanceof ValidationError) {
+      throw error;
+    }
     throw new ValidationError(`${field} must be a valid URL`, field);
   }
 }
@@ -134,7 +138,11 @@ export function validateArray(value: any, field: string, options?: {
 }
 
 export function sanitizeString(value: string): string {
-  return value.trim().replace(/\s+/g, ' ');
+  return value
+    .replace(/\\n/g, '\n')  // Convert literal \n to actual newline
+    .replace(/\\t/g, '\t')  // Convert literal \t to actual tab
+    .trim()
+    .replace(/\s+/g, ' ');
 }
 
 export function sanitizeHtml(value: string): string {
