@@ -4,5 +4,3 @@ encore.gen.cue
 /.encore
 node_modules
 /encore.gen
-backend/frontend/dist
-package-lock.json

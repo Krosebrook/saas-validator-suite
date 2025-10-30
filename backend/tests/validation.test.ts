@@ -48,7 +48,7 @@ describe("Validation utilities", () => {
     });
 
     it("should validate pattern", () => {
-      const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       expect(() => validateString("test@example.com", "field", { pattern: emailPattern })).not.toThrow();
       expect(() => validateString("invalid-email", "field", { pattern: emailPattern })).toThrow(ValidationError);
     });
@@ -154,7 +154,7 @@ describe("Validation utilities", () => {
   describe("sanitizeString", () => {
     it("should trim whitespace and normalize spaces", () => {
       expect(sanitizeString("  hello   world  ")).toBe("hello world");
-      expect(sanitizeString("test\\n\\tstring")).toBe("test string");
+      expect(sanitizeString("test\n\tstring")).toBe("test string");
     });
   });
 
@@ -170,7 +170,7 @@ describe("Validation utilities", () => {
 
     it("should remove event handlers", () => {
       expect(sanitizeHtml('<div onclick="alert()" onload="evil()">content</div>'))
-        .toBe('<div >content</div>');
+        .toBe('<div>content</div>');
     });
   });
 });

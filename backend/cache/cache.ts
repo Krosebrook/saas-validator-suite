@@ -157,7 +157,7 @@ export class MemoryCache {
 
   private evictOldest(): void {
     let oldestKey: string | null = null;
-    let oldestTime = Date.now();
+    let oldestTime = Infinity;
 
     for (const [key, entry] of this.cache.entries()) {
       if (entry.createdAt < oldestTime) {

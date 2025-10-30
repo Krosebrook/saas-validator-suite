@@ -71,7 +71,10 @@ export function validateUrl(value: any, field: string = 'url'): void {
   if (!value) return; // Optional field
   
   try {
-    new URL(value);
+    const url = new URL(value);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      throw new ValidationError(`${field} must be a valid URL`, field);
+    }
   } catch {
     throw new ValidationError(`${field} must be a valid URL`, field);
   }
@@ -139,5 +142,7 @@ export function sanitizeHtml(value: string): string {
   return value
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
     .replace(/javascript:/gi, '')
-    .replace(/on\w+\s*=/gi, '');
+    .replace(/\s*on\w+="[^"]*"/gi, '')
+    .replace(/\s*on\w+='[^']*'/gi, '')
+    .replace(/\s*on\w+=[^\s>]*/gi, '');
 }
