@@ -35,8 +35,10 @@ export function validateString(value: any, field: string, options?: {
     );
   }
 
-  if (options?.pattern && !options.pattern.test(value)) {
-    throw new ValidationError(`${field} format is invalid`, field);
+  if (options && options.pattern) {
+    if (!options.pattern.test(value)) {
+      throw new ValidationError(`${field} format is invalid`, field);
+    }
   }
 }
 
