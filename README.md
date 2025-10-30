@@ -31,18 +31,16 @@ A comprehensive SaaS validation platform with AI-powered analysis, compliance sc
 2. **Set up environment variables**:
    Copy `.env.example` to `.env` and fill in your API keys:
    - Clerk Secret Key
+   - Clerk Publishable Key
    - OpenAI API Key
    - Anthropic API Key
 
-3. **Configure Clerk**:
-   Update `frontend/config.ts` with your Clerk publishable key
-
-4. **Run the application**:
+3. **Run the application**:
    ```bash
    encore run
    ```
 
-5. **Access the app**:
+4. **Access the app**:
    - Backend: `http://localhost:4000`
    - Frontend: `http://localhost:3000`
 
