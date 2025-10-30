@@ -72,10 +72,10 @@ Backend will be available at `http://localhost:4000`
 **Frontend:**
 ```bash
 cd frontend
-npm install
-npx vite dev
+bun install
+bun run dev
 ```
-Frontend will be available at `http://localhost:5173`
+Frontend will be available at `http://localhost:5173` (default Vite port)
 
 **Generate Frontend Client:**
 ```bash
@@ -207,7 +207,7 @@ bun test --coverage
 ### Building
 ```bash
 # Build frontend (from backend directory)
-cd backend && npm run build
+cd backend && bun run build
 ```
 
 ### Deployment
