@@ -21,22 +21,27 @@ export function validateString(value: any, field: string, options?: {
     throw new ValidationError(`${field} must be a string`, field);
   }
 
-  if (options?.minLength && value.length < options.minLength) {
+  if (options?.minLength !== undefined && value.length < options.minLength) {
     throw new ValidationError(
       `${field} must be at least ${options.minLength} characters`,
       field
     );
   }
 
-  if (options?.maxLength && value.length > options.maxLength) {
+  if (options?.maxLength !== undefined && value.length > options.maxLength) {
     throw new ValidationError(
       `${field} must be no more than ${options.maxLength} characters`,
       field
     );
   }
 
-  if (options?.pattern && !options.pattern.test(value)) {
-    throw new ValidationError(`${field} format is invalid`, field);
+  if (options?.pattern !== undefined) {
+    if (!(options.pattern instanceof RegExp)) {
+      throw new ValidationError(`${field} pattern must be a RegExp`, field);
+    }
+    if (!options.pattern.test(value)) {
+      throw new ValidationError(`${field} format is invalid`, field);
+    }
   }
 }
 
@@ -68,7 +73,13 @@ export function validateEmail(value: any, field: string = 'email'): void {
 }
 
 export function validateUrl(value: any, field: string = 'url'): void {
-  if (!value) return; // Optional field
+  if (value === undefined || value === null || value === '') {
+    return;
+  }
+  
+  if (typeof value !== 'string') {
+    throw new ValidationError(`${field} must be a valid URL`, field);
+  }
   
   try {
     const url = new URL(value);
@@ -134,15 +145,16 @@ export function validateArray(value: any, field: string, options?: {
 }
 
 export function sanitizeString(value: string): string {
-  return value.trim().replace(/\s+/g, ' ');
+  if (typeof value !== 'string') return '';
+  return value.replace(/\s+/g, ' ').trim();
 }
 
 export function sanitizeHtml(value: string): string {
-  // Basic HTML sanitization - remove script tags and dangerous attributes
-  return value
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/javascript:/gi, '')
-    .replace(/\s*on\w+="[^"]*"/gi, '')
-    .replace(/\s*on\w+='[^']*'/gi, '')
-    .replace(/\s*on\w+=[^\s>]*/gi, '');
+  if (typeof value !== 'string') return '';
+  let out = value;
+  out = out.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+  out = out.replace(/\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+  out = out.replace(/(href|src)\s*=\s*(["']?)javascript:[^"'>\s]+\2/gi, '$1="#"');
+  out = out.replace(/javascript:/gi, '');
+  return out;
 }
