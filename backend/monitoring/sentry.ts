@@ -2,31 +2,21 @@ import { api } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import * as Sentry from "@sentry/node";
 
-// Sentry DSN should be configured as a secret
-const sentryDsn = secret("SENTRY_DSN");
+const sentryDsn = secret("SentryDSN");
 
-// Initialize Sentry early in your app
-export function initSentry() {
-  Sentry.init({
-    dsn: sentryDsn(),
-    // Tracing
-    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0, // 10% in production, 100% in development
-    // Setting this option to true will send default PII data to Sentry.
-    sendDefaultPii: true,
-    environment: process.env.NODE_ENV || "development",
-    beforeSend(event) {
-      // Filter out sensitive data
-      if (event.request?.headers) {
-        delete event.request.headers.authorization;
-        delete event.request.headers.cookie;
-      }
-      return event;
-    },
-  });
-}
-
-// Auto-initialize Sentry when this module is loaded
-initSentry();
+Sentry.init({
+  dsn: sentryDsn(),
+  tracesSampleRate: 1.0,
+  sendDefaultPii: true,
+  environment: process.env.NODE_ENV || "development",
+  beforeSend(event) {
+    if (event.request?.headers) {
+      delete event.request.headers.authorization;
+      delete event.request.headers.cookie;
+    }
+    return event;
+  },
+});
 
 // API to capture exceptions manually
 export const captureException = api(
