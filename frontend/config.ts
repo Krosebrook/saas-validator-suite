@@ -1,3 +1,5 @@
+import backend from '~backend/client';
+
 // API base URL
 export const apiBaseUrl = "";
 
@@ -8,11 +10,7 @@ export let clerkPublishableKey: string | null = null;
 // Function to fetch Clerk configuration from backend
 export async function fetchClerkConfig(): Promise<string> {
   try {
-    const response = await fetch('/auth/clerk-config');
-    if (!response.ok) {
-      throw new Error(`Failed to fetch Clerk config: ${response.status}`);
-    }
-    const config = await response.json();
+    const config = await backend.auth.getClerkConfig();
     clerkPublishableKey = config.publishableKey;
     return config.publishableKey;
   } catch (error) {
