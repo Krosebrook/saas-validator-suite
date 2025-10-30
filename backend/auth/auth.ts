@@ -53,8 +53,21 @@ export const gw = new Gateway({ authHandler: auth });
 export const getClerkConfig = api(
   { method: "GET", path: "/auth/clerk-config", expose: true },
   async (): Promise<{ publishableKey: string }> => {
-    return {
-      publishableKey: clerkPublishableKey(),
-    };
+    try {
+      const key = clerkPublishableKey();
+      if (!key) {
+        throw APIError.unavailable(
+          "Clerk is not configured. Please set ClerkSecretKey and ClerkPublishableKey in Settings."
+        );
+      }
+      return {
+        publishableKey: key,
+      };
+    } catch (err) {
+      throw APIError.unavailable(
+        "Clerk is not configured. Please set ClerkSecretKey and ClerkPublishableKey in Settings.",
+        err as Error
+      );
+    }
   }
 );
