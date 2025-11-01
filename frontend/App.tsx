@@ -1,5 +1,5 @@
 import React from 'react';
-import { SignedIn, SignedOut, SignInButton } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/clerk-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -9,15 +9,20 @@ import IdeasPage from './pages/Ideas';
 import IdeaDetail from './pages/IdeaDetail';
 import AnalyticsPage from './pages/Analytics';
 import SettingsPage from './pages/Settings';
+import ComparePage from './pages/Compare';
 import Navbar from './components/Navbar';
 import { NotificationProvider } from './components/NotificationProvider';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { useWebVitals } from './hooks/useWebVitals';
 
 const queryClient = new QueryClient();
 
-function App() {
+function AppInner() {
+  const { user } = useUser();
+  useWebVitals(user?.id);
+
   return (
-    <ClerkWrapper>
-      <QueryClientProvider client={queryClient}>
+    <ErrorBoundary>
         <div className="min-h-screen bg-background">
           <SignedOut>
             <div className="flex items-center justify-center min-h-screen">
@@ -47,6 +52,7 @@ function App() {
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/ideas" element={<IdeasPage />} />
                         <Route path="/ideas/:id" element={<IdeaDetail />} />
+                        <Route path="/compare" element={<ComparePage />} />
                         <Route path="/analytics" element={<AnalyticsPage />} />
                         <Route path="/settings" element={<SettingsPage />} />
                       </Routes>
@@ -59,6 +65,15 @@ function App() {
           
           <Toaster />
         </div>
+      </ErrorBoundary>
+  );
+}
+
+function App() {
+  return (
+    <ClerkWrapper>
+      <QueryClientProvider client={queryClient}>
+        <AppInner />
       </QueryClientProvider>
     </ClerkWrapper>
   );
