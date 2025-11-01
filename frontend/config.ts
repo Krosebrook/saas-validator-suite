@@ -8,13 +8,13 @@ export const apiBaseUrl = "";
 export let clerkPublishableKey: string | null = null;
 
 // Function to fetch Clerk configuration from backend
-export async function fetchClerkConfig(): Promise<string> {
+export async function fetchClerkConfig(): Promise<{ publishableKey: string; configured: boolean }> {
   try {
     const config = await backend.auth.getClerkConfig();
     clerkPublishableKey = config.publishableKey;
-    return config.publishableKey;
+    return config;
   } catch (error) {
     console.error('Error fetching Clerk configuration:', error);
-    throw error;
+    return { publishableKey: "", configured: false };
   }
 }

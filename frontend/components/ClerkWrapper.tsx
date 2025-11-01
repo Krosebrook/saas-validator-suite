@@ -10,15 +10,23 @@ export function ClerkWrapper({ children }: ClerkWrapperProps) {
   const [publishableKey, setPublishableKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [configured, setConfigured] = useState(true);
 
   useEffect(() => {
     const loadClerkConfig = async () => {
       try {
-        const key = await fetchClerkConfig();
-        setPublishableKey(key);
+        const config = await fetchClerkConfig();
+        if (!config.configured || !config.publishableKey) {
+          setConfigured(false);
+          setPublishableKey(null);
+        } else {
+          setPublishableKey(config.publishableKey);
+          setConfigured(true);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load authentication configuration');
         console.error('Failed to load Clerk configuration:', err);
+        setConfigured(false);
       } finally {
         setLoading(false);
       }
@@ -38,31 +46,25 @@ export function ClerkWrapper({ children }: ClerkWrapperProps) {
     );
   }
 
-  if (error || !publishableKey) {
+  if (!configured || !publishableKey) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center space-y-4 max-w-md p-6">
-          <div className="text-red-500 text-xl">⚠️</div>
-          <h2 className="text-xl font-semibold text-foreground">Authentication Configuration Required</h2>
-          <p className="text-muted-foreground">
-            {error || 'Failed to load authentication configuration'}
-          </p>
-          <div className="text-left bg-muted p-4 rounded-lg space-y-2">
-            <p className="text-sm font-medium">To configure Clerk authentication:</p>
-            <ol className="text-sm text-muted-foreground list-decimal list-inside space-y-1">
-              <li>Open Settings in the sidebar</li>
-              <li>Set <code className="bg-background px-1 py-0.5 rounded">ClerkSecretKey</code></li>
-              <li>Set <code className="bg-background px-1 py-0.5 rounded">ClerkPublishableKey</code></li>
-            </ol>
+      <>
+        <div className="bg-yellow-500/10 border-b border-yellow-500/20 px-4 py-2">
+          <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm">
+            <span className="text-yellow-500">⚠️</span>
+            <span className="text-yellow-700 dark:text-yellow-300">
+              Authentication not configured. Running in demo mode.
+            </span>
+            <a 
+              href="/settings" 
+              className="ml-auto text-yellow-700 dark:text-yellow-300 underline hover:no-underline"
+            >
+              Configure Clerk
+            </a>
           </div>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            Retry
-          </button>
         </div>
-      </div>
+        {children}
+      </>
     );
   }
 

@@ -5,7 +5,28 @@ import { secret } from "encore.dev/config";
 
 const clerkSecretKey = secret("ClerkSecretKey");
 const clerkPublishableKey = secret("ClerkPublishableKey");
-const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
+
+let clerkClient: ReturnType<typeof createClerkClient> | null = null;
+
+function getClerkClient() {
+  if (!clerkClient) {
+    try {
+      const key = clerkSecretKey();
+      if (!key || key.trim() === "") {
+        throw APIError.unavailable(
+          "Clerk is not configured. Please set ClerkSecretKey and ClerkPublishableKey in Settings."
+        );
+      }
+      clerkClient = createClerkClient({ secretKey: key });
+    } catch (err) {
+      throw APIError.unavailable(
+        "Clerk is not configured. Please set ClerkSecretKey and ClerkPublishableKey in Settings.",
+        err as Error
+      );
+    }
+  }
+  return clerkClient;
+}
 
 interface AuthParams {
   authorization?: Header<"Authorization">;
@@ -35,7 +56,8 @@ export const auth = authHandler<AuthParams, AuthData>(
         secretKey: clerkSecretKey(),
       });
 
-      const user = await clerkClient.users.getUser(verifiedToken.sub);
+      const client = getClerkClient();
+      const user = await client.users.getUser(verifiedToken.sub);
       return {
         userID: user.id,
         email: user.emailAddresses[0]?.emailAddress || "",
@@ -52,22 +74,24 @@ export const gw = new Gateway({ authHandler: auth });
 // Secure endpoint to get Clerk publishable key
 export const getClerkConfig = api(
   { method: "GET", path: "/auth/clerk-config", expose: true },
-  async (): Promise<{ publishableKey: string }> => {
+  async (): Promise<{ publishableKey: string; configured: boolean }> => {
     try {
       const key = clerkPublishableKey();
-      if (!key) {
-        throw APIError.unavailable(
-          "Clerk is not configured. Please set ClerkSecretKey and ClerkPublishableKey in Settings."
-        );
+      if (!key || key.trim() === "") {
+        return {
+          publishableKey: "",
+          configured: false,
+        };
       }
       return {
         publishableKey: key,
+        configured: true,
       };
     } catch (err) {
-      throw APIError.unavailable(
-        "Clerk is not configured. Please set ClerkSecretKey and ClerkPublishableKey in Settings.",
-        err as Error
-      );
+      return {
+        publishableKey: "",
+        configured: false,
+      };
     }
   }
 );

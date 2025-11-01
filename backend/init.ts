@@ -1,5 +1,3 @@
-// Import monitoring service to initialize Sentry early
-import "./monitoring/sentry";
-
 // This file initializes monitoring and other services before the app starts
-console.log("SaaS Validator Suite backend initialized with monitoring");
+// Note: Sentry is now lazy-initialized when first used, not at startup
+console.log("SaaS Validator Suite backend initialized");
