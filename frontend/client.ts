@@ -35,14 +35,25 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
 export class Client {
     public readonly ai: ai.ServiceClient
     public readonly auth: auth.ServiceClient
+    public readonly compare: compare.ServiceClient
     public readonly compliance: compliance.ServiceClient
+    public readonly compose: compose.ServiceClient
     public readonly db: db.ServiceClient
+    public readonly digests: digests.ServiceClient
+    public readonly enrichment: enrichment.ServiceClient
+    public readonly gamify: gamify.ServiceClient
     public readonly ideas: ideas.ServiceClient
+    public readonly imports: imports.ServiceClient
+    public readonly integrations: integrations.ServiceClient
     public readonly monitoring: monitoring.ServiceClient
     public readonly notifications: notifications.ServiceClient
+    public readonly perf: perf.ServiceClient
     public readonly scoring: scoring.ServiceClient
+    public readonly scraper: scraper.ServiceClient
     public readonly security: security.ServiceClient
+    public readonly syncs: syncs.ServiceClient
     public readonly users: users.ServiceClient
+    public readonly validation: validation.ServiceClient
     private readonly options: ClientOptions
     private readonly target: string
 
@@ -59,14 +70,25 @@ export class Client {
         const base = new BaseClient(this.target, this.options)
         this.ai = new ai.ServiceClient(base)
         this.auth = new auth.ServiceClient(base)
+        this.compare = new compare.ServiceClient(base)
         this.compliance = new compliance.ServiceClient(base)
+        this.compose = new compose.ServiceClient(base)
         this.db = new db.ServiceClient(base)
+        this.digests = new digests.ServiceClient(base)
+        this.enrichment = new enrichment.ServiceClient(base)
+        this.gamify = new gamify.ServiceClient(base)
         this.ideas = new ideas.ServiceClient(base)
+        this.imports = new imports.ServiceClient(base)
+        this.integrations = new integrations.ServiceClient(base)
         this.monitoring = new monitoring.ServiceClient(base)
         this.notifications = new notifications.ServiceClient(base)
+        this.perf = new perf.ServiceClient(base)
         this.scoring = new scoring.ServiceClient(base)
+        this.scraper = new scraper.ServiceClient(base)
         this.security = new security.ServiceClient(base)
+        this.syncs = new syncs.ServiceClient(base)
         this.users = new users.ServiceClient(base)
+        this.validation = new validation.ServiceClient(base)
     }
 
     /**
@@ -175,6 +197,29 @@ export namespace auth {
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
+import { compare as api_compare_compare_compare } from "~backend/compare/compare";
+
+export namespace compare {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.compare = this.compare.bind(this)
+        }
+
+        public async compare(params: RequestType<typeof api_compare_compare_compare>): Promise<ResponseType<typeof api_compare_compare_compare>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/compare/ideas`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_compare_compare_compare>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
 import { scan as api_compliance_scan_scan } from "~backend/compliance/scan";
 
 export namespace compliance {
@@ -194,6 +239,39 @@ export namespace compliance {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/compliance/scan`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_compliance_scan_scan>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
+import {
+    createOnePager as api_compose_onepager_createOnePager,
+    getExport as api_compose_onepager_getExport
+} from "~backend/compose/onepager";
+
+export namespace compose {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.createOnePager = this.createOnePager.bind(this)
+            this.getExport = this.getExport.bind(this)
+        }
+
+        public async createOnePager(params: { ideaId: string }): Promise<ResponseType<typeof api_compose_onepager_createOnePager>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/compose/onepager/${encodeURIComponent(params.ideaId)}`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_compose_onepager_createOnePager>
+        }
+
+        public async getExport(params: { exportId: string }): Promise<ResponseType<typeof api_compose_onepager_getExport>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/compose/exports/${encodeURIComponent(params.exportId)}`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_compose_onepager_getExport>
         }
     }
 }
@@ -251,6 +329,110 @@ export namespace db {
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
+import {
+    createDigest as api_digests_weekly_createDigest,
+    runDigest as api_digests_weekly_runDigest
+} from "~backend/digests/weekly";
+
+export namespace digests {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.createDigest = this.createDigest.bind(this)
+            this.runDigest = this.runDigest.bind(this)
+        }
+
+        public async createDigest(params: RequestType<typeof api_digests_weekly_createDigest>): Promise<ResponseType<typeof api_digests_weekly_createDigest>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/digests`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_digests_weekly_createDigest>
+        }
+
+        public async runDigest(params: { digestId: string }): Promise<ResponseType<typeof api_digests_weekly_runDigest>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/digests/${encodeURIComponent(params.digestId)}/run`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_digests_weekly_runDigest>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
+import {
+    getSignals as api_enrichment_run_getSignals,
+    run as api_enrichment_run_run
+} from "~backend/enrichment/run";
+
+export namespace enrichment {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getSignals = this.getSignals.bind(this)
+            this.run = this.run.bind(this)
+        }
+
+        public async getSignals(params: { ideaId: number }): Promise<ResponseType<typeof api_enrichment_run_getSignals>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/enrichment/ideas/${encodeURIComponent(params.ideaId)}/signals`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_enrichment_run_getSignals>
+        }
+
+        public async run(params: RequestType<typeof api_enrichment_run_run>): Promise<ResponseType<typeof api_enrichment_run_run>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/enrichment/run`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_enrichment_run_run>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
+import {
+    getLeaderboard as api_gamify_leaderboard_getLeaderboard,
+    updateMetrics as api_gamify_leaderboard_updateMetrics
+} from "~backend/gamify/leaderboard";
+
+export namespace gamify {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getLeaderboard = this.getLeaderboard.bind(this)
+            this.updateMetrics = this.updateMetrics.bind(this)
+        }
+
+        public async getLeaderboard(params: RequestType<typeof api_gamify_leaderboard_getLeaderboard>): Promise<ResponseType<typeof api_gamify_leaderboard_getLeaderboard>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                period: params.period === undefined ? undefined : String(params.period),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/gamify/leaderboard`, {query, method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_gamify_leaderboard_getLeaderboard>
+        }
+
+        public async updateMetrics(params: RequestType<typeof api_gamify_leaderboard_updateMetrics>): Promise<ResponseType<typeof api_gamify_leaderboard_updateMetrics>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/gamify/metrics`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_gamify_leaderboard_updateMetrics>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
 import { create as api_ideas_create_create } from "~backend/ideas/create";
 import { get as api_ideas_get_get } from "~backend/ideas/get";
 import { list as api_ideas_list_list } from "~backend/ideas/list";
@@ -299,6 +481,85 @@ export namespace ideas {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/ideas`, {query, method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ideas_list_list>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
+import {
+    commitImport as api_imports_bulk_commitImport,
+    createImport as api_imports_bulk_createImport,
+    getImport as api_imports_bulk_getImport
+} from "~backend/imports/bulk";
+
+export namespace imports {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.commitImport = this.commitImport.bind(this)
+            this.createImport = this.createImport.bind(this)
+            this.getImport = this.getImport.bind(this)
+        }
+
+        public async commitImport(params: RequestType<typeof api_imports_bulk_commitImport>): Promise<ResponseType<typeof api_imports_bulk_commitImport>> {
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                data: params.data,
+            }
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/imports/${encodeURIComponent(params.importId)}/commit`, {method: "POST", body: JSON.stringify(body)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_imports_bulk_commitImport>
+        }
+
+        public async createImport(params: RequestType<typeof api_imports_bulk_createImport>): Promise<ResponseType<typeof api_imports_bulk_createImport>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/imports`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_imports_bulk_createImport>
+        }
+
+        public async getImport(params: { importId: string }): Promise<ResponseType<typeof api_imports_bulk_getImport>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/imports/${encodeURIComponent(params.importId)}`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_imports_bulk_getImport>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
+import {
+    n8nWebhook as api_integrations_webhooks_n8nWebhook,
+    zapierWebhook as api_integrations_webhooks_zapierWebhook
+} from "~backend/integrations/webhooks";
+
+export namespace integrations {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.n8nWebhook = this.n8nWebhook.bind(this)
+            this.zapierWebhook = this.zapierWebhook.bind(this)
+        }
+
+        public async n8nWebhook(params: RequestType<typeof api_integrations_webhooks_n8nWebhook>): Promise<ResponseType<typeof api_integrations_webhooks_n8nWebhook>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/integrations/webhook/n8n`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_integrations_webhooks_n8nWebhook>
+        }
+
+        public async zapierWebhook(params: RequestType<typeof api_integrations_webhooks_zapierWebhook>): Promise<ResponseType<typeof api_integrations_webhooks_zapierWebhook>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/integrations/webhook/zapier`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_integrations_webhooks_zapierWebhook>
         }
     }
 }
@@ -404,6 +665,29 @@ export namespace notifications {
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
+import { recordWebVitals as api_perf_webvitals_recordWebVitals } from "~backend/perf/webvitals";
+
+export namespace perf {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.recordWebVitals = this.recordWebVitals.bind(this)
+        }
+
+        public async recordWebVitals(params: RequestType<typeof api_perf_webvitals_recordWebVitals>): Promise<ResponseType<typeof api_perf_webvitals_recordWebVitals>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/perf/webvitals`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_perf_webvitals_recordWebVitals>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
 import { submitFeedback as api_scoring_feedback_submitFeedback } from "~backend/scoring/feedback";
 
 export namespace scoring {
@@ -423,6 +707,53 @@ export namespace scoring {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/scoring/feedback`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_scoring_feedback_submitFeedback>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
+import { run as api_scraper_run_run } from "~backend/scraper/run";
+import {
+    listSources as api_scraper_sources_listSources,
+    updateSource as api_scraper_sources_updateSource
+} from "~backend/scraper/sources";
+
+export namespace scraper {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.listSources = this.listSources.bind(this)
+            this.run = this.run.bind(this)
+            this.updateSource = this.updateSource.bind(this)
+        }
+
+        public async listSources(): Promise<ResponseType<typeof api_scraper_sources_listSources>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/scraper/sources`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_scraper_sources_listSources>
+        }
+
+        public async run(params: RequestType<typeof api_scraper_run_run>): Promise<ResponseType<typeof api_scraper_run_run>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/scraper/run`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_scraper_run_run>
+        }
+
+        public async updateSource(params: RequestType<typeof api_scraper_sources_updateSource>): Promise<ResponseType<typeof api_scraper_sources_updateSource>> {
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                config:  params.config,
+                enabled: params.enabled,
+            }
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/scraper/sources/${encodeURIComponent(params.id)}`, {method: "PATCH", body: JSON.stringify(body)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_scraper_sources_updateSource>
         }
     }
 }
@@ -489,6 +820,39 @@ export namespace security {
  * Import the endpoint handlers to derive the types for the client.
  */
 import {
+    pullFromNotion as api_syncs_notion_pullFromNotion,
+    pushToNotion as api_syncs_notion_pushToNotion
+} from "~backend/syncs/notion";
+
+export namespace syncs {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.pullFromNotion = this.pullFromNotion.bind(this)
+            this.pushToNotion = this.pushToNotion.bind(this)
+        }
+
+        public async pullFromNotion(params: RequestType<typeof api_syncs_notion_pullFromNotion>): Promise<ResponseType<typeof api_syncs_notion_pullFromNotion>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/syncs/notion/pull`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_syncs_notion_pullFromNotion>
+        }
+
+        public async pushToNotion(params: RequestType<typeof api_syncs_notion_pushToNotion>): Promise<ResponseType<typeof api_syncs_notion_pushToNotion>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/syncs/notion/push`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_syncs_notion_pushToNotion>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
+import {
     getProfile as api_users_profile_getProfile,
     updateProfile as api_users_profile_updateProfile
 } from "~backend/users/profile";
@@ -520,6 +884,29 @@ export namespace users {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/user/profile`, {method: "PUT", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_users_profile_updateProfile>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
+import { score as api_validation_score_score } from "~backend/validation/score";
+
+export namespace validation {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.score = this.score.bind(this)
+        }
+
+        public async score(params: RequestType<typeof api_validation_score_score>): Promise<ResponseType<typeof api_validation_score_score>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/validation/score`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_validation_score_score>
         }
     }
 }

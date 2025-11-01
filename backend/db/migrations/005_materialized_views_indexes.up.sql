@@ -16,7 +16,7 @@ SELECT
   sa.viability_score as startup_viability,
   sa.market_verdict,
   sa.competitive_verdict,
-  COALESCE(jsonb_array_length(i.tags::jsonb), 0) as tag_count,
+  COALESCE(array_length(i.tags, 1), 0) as tag_count,
   (SELECT COUNT(*) FROM exports WHERE idea_id = i.id AND status = 'completed') as export_count
 FROM ideas i
 LEFT JOIN idea_validation iv ON i.id = iv.idea_id
