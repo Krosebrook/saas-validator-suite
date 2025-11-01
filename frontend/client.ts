@@ -585,27 +585,18 @@ export namespace monitoring {
             this.trackPerformance = this.trackPerformance.bind(this)
         }
 
-        /**
-         * API to capture exceptions manually
-         */
         public async captureException(params: RequestType<typeof api_monitoring_sentry_captureException>): Promise<ResponseType<typeof api_monitoring_sentry_captureException>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/monitoring/error`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_monitoring_sentry_captureException>
         }
 
-        /**
-         * Health check endpoint
-         */
         public async healthCheck(): Promise<ResponseType<typeof api_monitoring_sentry_healthCheck>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/monitoring/health`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_monitoring_sentry_healthCheck>
         }
 
-        /**
-         * Performance monitoring
-         */
         public async trackPerformance(params: RequestType<typeof api_monitoring_sentry_trackPerformance>): Promise<ResponseType<typeof api_monitoring_sentry_trackPerformance>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/monitoring/performance`, {method: "POST", body: JSON.stringify(params)})

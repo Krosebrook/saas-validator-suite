@@ -1,50 +1,27 @@
 import { api } from "encore.dev/api";
 import { secret } from "encore.dev/config";
-import * as Sentry from "@sentry/node";
+import Sentry, { initSentry } from "../instrument";
 
 const sentryDsn = secret("SentryDSN");
 
 let sentryInitialized = false;
 
-function initializeSentry() {
+function ensureSentryInit() {
   if (sentryInitialized) return;
   
   try {
     const dsn = sentryDsn();
-    if (!dsn || dsn.trim() === "") {
-      console.warn("SentryDSN not configured. Sentry monitoring is disabled.");
-      return;
-    }
-    
-    Sentry.init({
-      dsn,
-      tracesSampleRate: 1.0,
-      sendDefaultPii: true,
-      environment: process.env.NODE_ENV || "development",
-      beforeSend(event) {
-        if (event.request?.headers) {
-          delete event.request.headers.authorization;
-          delete event.request.headers.cookie;
-        }
-        return event;
-      },
-    });
-    
+    initSentry(dsn);
     sentryInitialized = true;
   } catch (err) {
-    console.warn("Failed to initialize Sentry:", err);
+    console.warn("Sentry initialization skipped:", err);
   }
 }
 
-// API to capture exceptions manually
 export const captureException = api(
   { method: "POST", path: "/monitoring/error", expose: true },
   async (req: { error: string; context?: Record<string, any> }): Promise<{ id: string }> => {
-    initializeSentry();
-    
-    if (!sentryInitialized) {
-      return { id: "sentry-not-configured" };
-    }
+    ensureSentryInit();
     
     const eventId = Sentry.captureException(new Error(req.error), {
       extra: req.context,
@@ -54,7 +31,6 @@ export const captureException = api(
   }
 );
 
-// Health check endpoint
 export const healthCheck = api(
   { method: "GET", path: "/monitoring/health", expose: true },
   async (): Promise<{ status: string; timestamp: string }> => {
@@ -65,7 +41,6 @@ export const healthCheck = api(
   }
 );
 
-// Performance monitoring
 export const trackPerformance = api(
   { method: "POST", path: "/monitoring/performance", expose: true },
   async (req: { 
@@ -73,11 +48,7 @@ export const trackPerformance = api(
     duration: number; 
     metadata?: Record<string, any> 
   }): Promise<{ tracked: boolean }> => {
-    initializeSentry();
-    
-    if (!sentryInitialized) {
-      return { tracked: false };
-    }
+    ensureSentryInit();
     
     Sentry.addBreadcrumb({
       message: `Performance: ${req.operation}`,
@@ -88,8 +59,7 @@ export const trackPerformance = api(
       },
     });
 
-    // Track slow operations
-    if (req.duration > 5000) { // 5 seconds
+    if (req.duration > 5000) {
       Sentry.captureMessage(`Slow operation detected: ${req.operation}`, 'warning');
     }
 
