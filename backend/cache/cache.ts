@@ -43,8 +43,8 @@ export class MemoryCache {
     const ttlMs = ttl || this.defaultTTL;
     const now = Date.now();
 
-    // If cache is at max size and key doesn't exist, remove oldest entry
-    if (this.cache.size >= this.maxSize && !this.cache.has(key)) {
+    // If cache is at max size, remove oldest entry
+    if (this.cache.size >= this.maxSize) {
       this.evictOldest();
     }
 

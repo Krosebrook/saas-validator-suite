@@ -86,11 +86,7 @@ export function validateUrl(value: any, field: string = 'url'): void {
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
       throw new ValidationError(`${field} must be a valid URL`, field);
     }
-  } catch (error) {
-    // Re-throw ValidationError if it's already one
-    if (error instanceof ValidationError) {
-      throw error;
-    }
+  } catch {
     throw new ValidationError(`${field} must be a valid URL`, field);
   }
 }
