@@ -1,5 +1,5 @@
 import { api } from "encore.dev/api";
-import * as cron from "encore.dev/cron";
+import { CronJob } from "encore.dev/cron";
 import db from "../db";
 
 interface CreateDigestRequest {
@@ -70,9 +70,9 @@ export const runDigest = api(
   }
 );
 
-export const weeklyDigest = cron.job(
-  { id: "weekly-digest", schedule: "0 9 * * 1" },
-  async () => {
+export const runWeeklyDigest = api(
+  { expose: false },
+  async (): Promise<{ processed: number }> => {
     const digests = await db.query(
       `SELECT * FROM digests WHERE enabled = true AND schedule = 'weekly'`
     );
@@ -80,8 +80,16 @@ export const weeklyDigest = cron.job(
     for (const digest of digests.rows) {
       await runDigest({ digestId: digest.id.toString() });
     }
+
+    return { processed: digests.rows.length };
   }
 );
+
+const _ = new CronJob("weekly-digest", {
+  title: "Send weekly digest",
+  schedule: "0 9 * * 1",
+  endpoint: runWeeklyDigest,
+});
 
 export const ping = api({ method: "GET", path: "/digests/healthz" }, async () => ({ ok: true }));
 
