@@ -69,6 +69,24 @@ function AppInner() {
   );
 }
 
+function DemoApp() {
+  return (
+    <ErrorBoundary>
+      <div className="min-h-screen bg-background">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center space-y-6">
+            <h1 className="text-4xl font-bold text-foreground">SaaS Validator Suite</h1>
+            <p className="text-lg text-muted-foreground">
+              Authentication not configured. Please configure Clerk to continue.
+            </p>
+          </div>
+        </div>
+        <Toaster />
+      </div>
+    </ErrorBoundary>
+  );
+}
+
 function App() {
   return (
     <ClerkWrapper>
