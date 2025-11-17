@@ -9,8 +9,8 @@
   },
   "dependencies": {
     "@clerk/backend": "^1.27.0",
-    "@sentry/node": "^10.22.0",
-    "encore.dev": "^1.50.6",
+    "@sentry/node": "^10.25.0",
+    "encore.dev": "^1.51.6",
     "vitest": "^3.0.9"
   },
   "devDependencies": {
